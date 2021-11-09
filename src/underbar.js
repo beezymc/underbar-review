@@ -235,11 +235,25 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    _.each(arguments, function(argObj, index) {
+      _.each(argObj, function(item, key) {
+        obj[key] = item;
+      });
+    });
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    _.each(arguments, function(argObj, index) {
+      _.each(argObj, function(item, key) {
+        if (obj[key] === undefined) {
+          obj[key] = item;
+        }
+      });
+    });
+    return obj;
   };
 
 
@@ -282,7 +296,23 @@
   // _.memoize should return a function that, when called, will check if it has
   // already computed the result for the given argument and return that value
   // instead if possible.
+
+  //Once and Memoize differ in that memoize checks if the function was called with those arguments (and passes the solution back to the user without doing any work if so).
+  //Once only checks if a function was called at all, and passes the original solution back to the user (no matter if there is a change in arguments)
   _.memoize = function(func) {
+    var memoizedFunctions = {};
+    return function() {
+      if (memoizedFunctions[func] && (memoizedFunctions[func].arguments === JSON.stringify(arguments[0]))) {
+        return memoizedFunctions[func].result;
+      } else {
+        var result = func.apply(this, arguments);
+        memoizedFunctions[func] = {
+          arguments: JSON.stringify(arguments[0]),
+          result: result
+        };
+        return result;
+      }
+    };
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -292,6 +322,11 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    var argsArray = [].slice.call(arguments);
+    var currentArgs = argsArray.slice(2);
+    setTimeout(function() {
+      func.apply(this, currentArgs);
+    }, wait);
   };
 
 
@@ -306,6 +341,18 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var randomizedArr = [];
+    var usedIndices = [];
+    _.each(array, function(item, index) {
+      while (usedIndices.length <= index) {
+        var randomizedIndex = Math.floor(Math.random() * array.length);
+        if (!usedIndices.includes(randomizedIndex)) {
+          usedIndices.push(randomizedIndex);
+          randomizedArr[randomizedIndex] = item;
+        }
+      }
+    });
+    return randomizedArr;
   };
 
 
