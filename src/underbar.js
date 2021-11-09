@@ -162,9 +162,18 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-    _.each(collection, function(item) {
-      return iterator(accumulator, item);
-    });
+    var iterator = iterator || _.identity;
+    if (accumulator !== undefined) {
+      _.each(collection, function(item) {
+        accumulator = iterator(accumulator, item);
+      });
+    } else {
+      var accumulator = collection[0];
+      var firstlessCollection = collection.slice(1);
+      _.each(firstlessCollection, function(item) {
+        accumulator = iterator(accumulator, item);
+      });
+    }
     return accumulator;
   };
 
@@ -184,12 +193,26 @@
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    var iterator = iterator || _.identity;
+    return _.reduce(collection, function(isTrue, value) {
+      if (!isTrue) {
+        return false;
+      }
+      return Boolean(iterator(value));
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    var iterator = iterator || _.identity;
+    return _.reduce(collection, function(isFalse, value) {
+      if (isFalse) {
+        return true;
+      }
+      return Boolean(iterator(value));
+    }, false);
   };
 
 
